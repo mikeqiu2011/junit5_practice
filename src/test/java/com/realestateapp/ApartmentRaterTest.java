@@ -17,64 +17,44 @@ class ApartmentRaterTest {
 
     @BeforeEach
     void setUp() {
+        System.out.println("one unit test started");
         this.randomApartmentGenerator = new RandomApartmentGenerator();
     }
 
     @AfterEach
     void tearDown() {
+        System.out.println("one unit test completed");
     }
 
     @Nested
     class RateApartmentTests {
         @ParameterizedTest
-        @CsvFileSource(resources = "/cheap_departments.csv",numLinesToSkip = 1)
-        void should_ReturnZero_when_RateAsCheap(double area, BigDecimal price){
+        @CsvFileSource(resources = "/apartments_rating.csv",numLinesToSkip = 1)
+        void should_ReturnCorrectRating_when_CorrectDepartment(double area, BigDecimal price, int rate){
             //given
             Apartment apartment = new Apartment(area,price);
+            int expect = rate;
 
             //when
             int actual = ApartmentRater.rateApartment(apartment);
 
             //then
-            assertEquals(0, actual);
+            assertEquals(expect, actual);
         }
 
-        @ParameterizedTest
-        @CsvFileSource(resources = "/moderate_departments.csv",numLinesToSkip = 1)
-        void should_ReturnOne_when_RateAsModerate(double area, BigDecimal price){
-            //given
-            Apartment apartment = new Apartment(area,price);
 
-            //when
-            int actual = ApartmentRater.rateApartment(apartment);
-
-            //then
-            assertEquals(1, actual);
-        }
-
-        @ParameterizedTest
-        @CsvFileSource(resources = "/expensive_departments.csv",numLinesToSkip = 1)
-        void should_ReturnTwo_when_RateAsExpensive(double area, BigDecimal price){
-            //given
-            Apartment apartment = new Apartment(area,price);
-
-            //when
-            int actual = ApartmentRater.rateApartment(apartment);
-
-            //then
-            assertEquals(2, actual);
-        }
 
         @Test
-        void should_ReturnMinusOne_when_AreaIsZero(){
+        void should_ReturnErrorValue_when_IncorrectAppartment(){
             //given
-            Apartment apartment = new Apartment(0,new BigDecimal(100));
+            Apartment apartment = new Apartment(0,new BigDecimal(100000));
+            int expect = -1;
 
             //when
             int actual = ApartmentRater.rateApartment(apartment);
 
             //then
-            assertEquals(-1, actual);
+            assertEquals(expect, actual);
         }
 
     }
@@ -95,25 +75,24 @@ class ApartmentRaterTest {
         }
 
         @Test
-        void should_ReturnReasonableAveragePrice_when_ListIsNotEmpty(){
-            //given
+        void should_CalculateAverageRating_When_CorrectApartmentList() {
+
+            // given
             List<Apartment> apartments = new ArrayList<>();
-            for (int i = 0; i < 100; i++) {
-                apartments.add(ApartmentRaterTest.this.randomApartmentGenerator.generate());
-            }
+            apartments.add(new Apartment(72.0, new BigDecimal(250000.0)));
+            apartments.add(new Apartment(48.0, new BigDecimal(350000.0)));
+            apartments.add(new Apartment(30.0, new BigDecimal(600000.0)));
 
-            //when
+            double expected = 1.0;
+
+            // when
             double actual = ApartmentRater.calculateAverageRating(apartments);
-//            System.out.println("actual: " + actual);
 
-            //then
-            assertAll(
-                    () -> assertTrue(actual > 0),
-                    () -> assertTrue(actual < 2)
-            );
-
+            // then
+            assertEquals(expected, actual);
         }
 
+        //performance test for a particular method
         @Test
         void should_ReturnRunWithIn500Ms_when_1000ListItemsIsGiven(){
             //given
